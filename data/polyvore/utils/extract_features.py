@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 import torchvision.transforms as transforms
-from google_drive_downloader import GoogleDriveDownloader as gdd
+
 import os
 import argparse
 import numpy as np
@@ -45,6 +45,7 @@ TN = Optional[T]
 TNS = Union[Tuple[TN, ...], List[TN]]
 TSN = Optional[TS]
 TA = Union[T, ARRAY]
+D = torch.device
 
 class MLP(nn.Module):
 
@@ -232,11 +233,19 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 current_directory = os.getcwd()
 save_path = os.path.join(os.path.dirname(current_directory), "pretrained_models")
 os.makedirs(save_path, exist_ok=True)
-model_path = os.path.join(save_path, 'model_wieghts.pt')
+# model_path = os.path.join(save_path, 'model_wieghts.pt')
+model_path = os.path.join("/content/", 'model_wieghts.pt')
 
-gdd.download_file_from_google_drive(file_id='14pXWwB4Zm82rsDdvbGguLfx9F8aM7ovT',
-                                    dest_path=model_path)
+# gdd.download_file_from_google_drive(file_id='14pXWwB4Zm82rsDdvbGguLfx9F8aM7ovT',
+#                                     dest_path=model_path)
+# gdd.download_file_from_google_drive(file_id='1-1rkbKA2U6u9azVZyMs8NMpoxjxIoD-e',
+#                                     dest_path=model_path)
 
+# a file
+
+# file_id = "14pXWwB4Zm82rsDdvbGguLfx9F8aM7ovT"
+# url = f"http://drive.google.com/uc?id={file_id}"
+# gdown.download(url, output=model_path, quiet=False)
 sbert_model = SentenceTransformer('bert-base-nli-mean-tokens')
 
 clip_model, preprocess = clip.load("ViT-B/32", device=device, jit=False)
@@ -279,13 +288,13 @@ def process_image(im):
 def process_text(txt):
     return sbert_model.encode([txt])[0]
 
-dataset_path = '..'
+dataset_path = '/content/visual-compatibility/data/polyvore/'
 images_path = dataset_path + '/images/'
 json_file = os.path.join(dataset_path, 'jsons/{}_no_dup.json'.format(args.phase))
 with open(json_file) as f:
     data = json.load(f)
 
-save_to = '../dataset'
+save_to = '/content/dataset'
 if not os.path.exists(save_to):
     os.makedirs(save_to)
 save_dict = os.path.join(save_to, 'imgs_featdict_{}.pkl'.format(args.phase))

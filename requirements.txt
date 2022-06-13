@@ -1,8 +1,8 @@
 gdown==3.7.4
-tensorflow-gpu==1.10.0
 torch
 torchvision
 scikit-image==0.14.2
 git+https://github.com/openai/CLIP.git
 transformers
 googledrivedownloader
+sentence-transformers
