@@ -27,7 +27,6 @@ import torch.nn.functional as nnf
 import sys
 from typing import Tuple, List, Union, Optional
 from transformers import GPT2Tokenizer, GPT2LMHeadModel, AdamW, get_linear_schedule_with_warmup
-from tqdm import tqdm, trange
 from google.colab import files
 import skimage.io as io
 import PIL.Image
@@ -183,7 +182,7 @@ def generate2(
 
     with torch.no_grad():
 
-        for entry_idx in trange(entry_count):
+        for entry_idx in range(entry_count):
             if embed is not None:
                 generated = embed
             else:
@@ -219,7 +218,7 @@ def generate2(
                     break
 
             output_list = list(tokens.squeeze().cpu().numpy())
-            output_text = tokenizer.decode(output_list)
+            output_text = tokenizer.decode(output_list[0])
             generated_list.append(output_text)
 
     return generated_list[0]
@@ -294,7 +293,7 @@ json_file = os.path.join(dataset_path, 'jsons/{}_no_dup.json'.format(args.phase)
 with open(json_file) as f:
     data = json.load(f)
 
-save_to = '/content/dataset'
+save_to = '/content/dataset/'
 if not os.path.exists(save_to):
     os.makedirs(save_to)
 save_dict = os.path.join(save_to, 'imgs_featdict_{}.pkl'.format(args.phase))
@@ -318,52 +317,52 @@ i = 0
 n_items = len(ids.keys())
 with torch.no_grad(): # it is the same as volatile=True for versions before 0.4
     for id in ids:
-        
-        try:
-            outfit_id, index = ids[id][0].split('_') # outfitID_index
 
-            image_path = images_path + outfit_id + '/' + '{}.jpg'.format(index)
-            assert os.path.exists(image_path)
+        # try:
+        outfit_id, index = ids[id][0].split('_') # outfitID_index
 
-            im = skimage.io.imread(image_path)
-            pil_image = PIL.Image.fromarray(im)
-            image = preprocess(pil_image).unsqueeze(0).to(device)
+        image_path = images_path + outfit_id + '/' + '{}.jpg'.format(index)
+        assert os.path.exists(image_path)
 
-            with torch.no_grad():
-                # if type(model) is ClipCaptionE2E:
-                #     prefix_embed = model.forward_image(image)
-                # else:
-                prefix = clip_model.encode_image(image).to(device, dtype=torch.float32)
-                prefix_embed = model.clip_project(prefix).reshape(1, prefix_length, -1)
-            if use_beam_search:
-                generated_text_prefix = generate_beam(model, tokenizer, embed=prefix_embed)[0]
-            else:
-                generated_text_prefix = generate2(model, tokenizer, embed=prefix_embed)
+        im = skimage.io.imread(image_path)
+        pil_image = PIL.Image.fromarray(im)
+        image = preprocess(pil_image).unsqueeze(0).to(device)
 
-            if len(im.shape) == 2:
-                im = gray2rgb(im)
-            if im.shape[2] == 4:
-                im = rgba2rgb(im)
+        with torch.no_grad():
+            # if type(model) is ClipCaptionE2E:
+            #     prefix_embed = model.forward_image(image)
+            # else:
+            prefix = clip_model.encode_image(image).to(device, dtype=torch.float32)
+            prefix_embed = model_clip.clip_project(prefix).reshape(1, prefix_length, -1)
+        if use_beam_search:
+            generated_text_prefix = generate_beam(model_clip, tokenizer, embed=prefix_embed)[0]
+        else:
+            generated_text_prefix = generate2(model_clip, tokenizer, embed=prefix_embed)
 
-            im = resize(im, (256, 256))
-            im = img_as_ubyte(im)
+        if len(im.shape) == 2:
+            im = gray2rgb(im)
+        if im.shape[2] == 4:
+            im = rgba2rgb(im)
 
-            feats = process_image(im).cpu().numpy()
+        im = resize(im, (256, 256))
+        im = img_as_ubyte(im)
 
-            feat1 = process_text(ids[id][1])
+        feats = process_image(im).cpu().numpy()
 
-            feat2 = process_text(generated_text_prefix)
+        feat1 = process_text(ids[id][1])
 
-            feats = np.hstack([feats, feat1, feat2])
+        feat2 = process_text(generated_text_prefix)
 
-            if id not in features:
-                features[id] = feats
-                count[id] = 0
-            else:
-                features[id] += feats
-            count[id] += 1
+        feats = np.hstack([feats, feat1, feat2])
 
-        except : pass
+        if id not in features:
+            features[id] = feats
+            count[id] = 0
+        else:
+            features[id] += feats
+        count[id] += 1
+
+        # except : pass
 
         if i % 1000 == 0 and i > 0:
             print('{}/{}'.format(i, n_items))

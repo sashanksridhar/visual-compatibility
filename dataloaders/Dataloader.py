@@ -20,8 +20,8 @@ class Dataloader(object):
 
     def normalize_features(self, feats, get_moments=False, mean=None, std=None):
         reuse_mean = mean is not None and std is not None
-        if feats.shape[1] != 2048: # image features
-            raise ValueError('Features are expected to be 2048-dimensional (extracted with ResNet)')
+        if feats.shape[1] != 3584: # image features
+            raise ValueError('Features are expected to be 3584-dimensional (extracted with ResNet)')
         else:
             feats = np.array(feats.todense())
             if reuse_mean:

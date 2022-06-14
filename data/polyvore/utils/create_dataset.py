@@ -18,11 +18,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--phase', default='train', choices=['train', 'valid', 'test'])
 args = parser.parse_args()
 
-save_path = '../dataset/'
+save_path = '/content/dataset/'
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
-dataset_path = '../jsons/'
+dataset_path = '/content/visual-compatibility/data/polyvore/jsons/'
 json_file = dataset_path + '{}_no_dup.json'.format(args.phase)
 train_file = dataset_path + 'train_no_dup.json'
 valid_file = dataset_path + 'valid_no_dup.json'
@@ -80,7 +80,7 @@ with open(map_file, 'w') as f:
 
 # create sparse matrix that will represent the adj matrix
 sp_adj = lil_matrix((idx, idx))
-features_mat = np.zeros((idx, 2048))
+features_mat = np.zeros((idx, 3584))
 print('Filling the values of the sparse adj matrix')
 for rel in relations:
     rel_list = relations[rel]

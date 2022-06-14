@@ -6,3 +6,4 @@ git+https://github.com/openai/CLIP.git
 transformers
 googledrivedownloader
 sentence-transformers
+sparse

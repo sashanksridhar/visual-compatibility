@@ -10,7 +10,7 @@ class DataLoaderPolyvore(Dataloader):
     Load polyvore data.
     """
     def __init__(self):
-        super(DataLoaderPolyvore, self).__init__(path='data/polyvore/dataset/')
+        super(DataLoaderPolyvore, self).__init__(path='/content/dataset/')
 
     def init_phase(self, phase):
         print('init phase: {}'.format(phase))
