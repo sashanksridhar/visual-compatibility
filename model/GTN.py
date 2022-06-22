@@ -27,7 +27,9 @@ class GTN(nn.Module):
         self.bias = nn.Parameter(torch.Tensor(w_out))
         self.loss = nn.CrossEntropyLoss()
         self.linear1 = nn.Linear(self.w_out * self.num_channels, self.w_out)
-        self.linear2 = nn.Linear(self.w_out, self.num_class)
+        print(self.w_out)
+        print(self.num_class)
+        self.linear2 = nn.Linear(self.w_out, int(self.num_class))
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -63,7 +65,9 @@ class GTN(nn.Module):
         return H
 
     def forward(self, A, X, target, r_indices, c_indices):
-        A = A.unsqueeze(0).permute(0, 3, 1, 2)
+        # A = torch.from_numpy(A)
+        print(A.unsqueeze(0).size())
+        A = A.unsqueeze(0).permute(0, 2, 1)
         Ws = []
         for i in range(self.num_layers):
             if i == 0:
@@ -109,12 +113,16 @@ class GTLayer(nn.Module):
 
     def forward(self, A, H_=None):
         if self.first == True:
-            a = self.conv1(A)
+            a = self.conv1(A).permute(0, 2, 1)
             b = self.conv2(A)
+            print(a.size())
+            print(b.size())
             H = torch.bmm(a, b)
             W = [(F.softmax(self.conv1.weight, dim=1)).detach(), (F.softmax(self.conv2.weight, dim=1)).detach()]
         else:
-            a = self.conv1(A)
+            a = self.conv1(A).permute(0, 2, 1)
+            print(a.size())
+            print(H_.size())
             H = torch.bmm(H_, a)
             W = [(F.softmax(self.conv1.weight, dim=1)).detach()]
         return H, W

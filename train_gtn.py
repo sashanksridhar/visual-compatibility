@@ -129,8 +129,8 @@ G_val = nx.from_scipy_sparse_matrix(adj_val, create_using=nx.Graph)
 edges_val = np.array(G_val.edges)
 G_test = nx.from_scipy_sparse_matrix(adj_test, create_using=nx.Graph)
 edges_test = np.array(G_test.edges)
-train_features = train_features.toarray()
-val_features = val_features.toarray()
+# train_features = train_features.toarray()
+# val_features = val_features.toarray()
 
 train_r_indices = train_r_indices.astype('int')
 train_c_indices = train_c_indices.astype('int')
@@ -145,16 +145,27 @@ num_nodes = edges[0].shape[0]
 
 final_f1 = 0
 
-num_classes = torch.max(train_labels).item()+1
+num_classes = np.max(train_labels)+1
 
-# for i, edge in enumerate(edges):
-#     if i == 0:
-#         A = torch.from_numpy(edge.todense()).type(torch.FloatTensor).unsqueeze(-1)
-#     else:
-#         A = torch.cat([A, torch.from_numpy(edge.todense()).type(torch.FloatTensor).unsqueeze(-1)], dim=-1)
+for i, edge in enumerate(edges):
+    # print(torch.from_numpy(edge).type(torch.FloatTensor).unsqueeze(-1).size())
+    if i == 0:
+        A = torch.from_numpy(edge).type(torch.FloatTensor).unsqueeze(-1)
+    else:
+        A = torch.cat([A, torch.from_numpy(edge).type(torch.FloatTensor).unsqueeze(-1)], dim=-1)
+# print(num_nodes)
+# print(A.size())
+# print(torch.eye(num_nodes).type(torch.FloatTensor).unsqueeze(-1).size())
 # A = torch.cat([A, torch.eye(num_nodes).type(torch.FloatTensor).unsqueeze(-1)], dim=-1)
 
-model = GTN(num_edge=edges.shape[-1],
+print("Num edge" + str(edges.shape[-1]))
+print("Num Channels "+ str(num_channels))
+print("Win " + str(train_features.shape[1]))
+print("Wout "+ str(node_dim))
+print("Num of classes "+ str(num_classes))
+print("Num of Layers "+ str(num_layers))
+
+model = GTN.GTN(num_edge=edges.shape[-1],
             num_channels=num_channels,
             w_in=train_features.shape[1],
             w_out=node_dim,
@@ -181,7 +192,7 @@ for i in range(NB_EPOCH):
     print('Epoch:  ', i + 1)
     model.zero_grad()
     model.train()
-    loss, y_train, Ws = model(edges, train_features, train_labels, train_r_indices, train_c_indices)
+    loss, y_train, Ws = model(A, torch.from_numpy(train_features).to(torch.float32), train_labels, train_r_indices, train_c_indices)
     train_f1 = torch.mean(
         accuracy(torch.argmax(y_train.detach(), dim=1), train_labels)).cpu().numpy()
     print('Train - Loss: {}, Macro_F1: {}'.format(loss.detach().cpu().numpy(), train_f1))
